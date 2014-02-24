@@ -1,0 +1,2 @@
+export PATH="${HOME}/go_appengine:${PATH}"
+export GOROOT="${HOME}/go_appengine/goroot"
