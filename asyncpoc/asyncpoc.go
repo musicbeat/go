@@ -8,42 +8,40 @@ import (
 	"net/http"
 )
 
-type ProcessingRequest struct {
-	ClientSuppliedRequestId  int
-	ServiceSuppliedRequestId int
-	RequestContent           string
-	RequestState             string
+type ClientRequest struct {
+	RequestId      string
+	RequestContent string
+	RequestState   string
 }
 
-type ProcessingOrder struct {
-	Request  ProcessingRequest
-	Response []worker.ProcessingResponse
-}
-
-func (req ProcessingRequest) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+func (req ClientRequest) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	// prepare the processing order:
-	po := ProcessingOrder{
-		Request:  req,
+	po := worker.ProcessingOrder{
+		Request: worker.ProcessingRequest{
+			ClientSuppliedRequestId: req.RequestId,
+			RequestContent:          req.RequestContent,
+			RequestState:            req.RequestState,
+		},
 		Response: []worker.ProcessingResponse{},
 	}
+	c := make(chan int)
 	// just execute a work function:
-	resp := worker.Work(worker.ProcessingResponse{})
-	po.Response = append(po.Response, resp)
+	go worker.Work(&po, c)
+	// wait for it:
+	<- c
 	j, err := json.MarshalIndent(po, "", "  ")
 	if err == nil {
 		fmt.Fprint(w, fmt.Sprintf("%s\n", j))
-		log.Printf("%+v\n", po)
 	} else {
 		fmt.Fprint(w, fmt.Sprintf("gads: %s\n", err))
-		log.Printf("%s\n", err)
 	}
 }
 
 func main() {
-	r := ProcessingRequest{
-		ClientSuppliedRequestId: 1001,
-		RequestContent:          "all your gifts are belong to us",
-		RequestState:            "submitted",
+	r := ClientRequest{
+		RequestId:      "1001",
+		RequestContent: "all your gifts are belong to us",
+		RequestState:   "submitted",
 	}
 	http.Handle("/process", &r)
 	err := http.ListenAndServe("localhost:4000", nil)
