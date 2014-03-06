@@ -1,6 +1,7 @@
 package main
 
 import (
+	"code.google.com/p/go-uuid/uuid"
 	"encoding/json"
 	"fmt"
 	"github.com/musicbeat/go/worker"
@@ -40,6 +41,7 @@ func (req ClientRequest) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	po := worker.ProcessingOrder{
 		Request: worker.ProcessingRequest{
 			ClientSuppliedRequestId: req.RequestId,
+			ServiceSuppliedRequestId: uuid.NewRandom().String(),
 			RequestContent:          req.RequestContent,
 			RequestState:            req.RequestState,
 		},
