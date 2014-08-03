@@ -5,19 +5,19 @@ import (
 	"fmt"
 	"net/http"
 )
-
+// a string
 type String string
-
+// a server
 func (s String) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprint(w, s)
 }
-
+// a greeting
 type Struct struct {
 	Greeting string
 	Punct    string
 	Who      string
 }
-
+// a server
 func (s *Struct) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	b, err := json.MarshalIndent(s, "", "  ")
 	if err == nil {
